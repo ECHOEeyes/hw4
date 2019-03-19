@@ -1,0 +1,105 @@
+《lbq01.m》
+
+str='test1.pgm';
+Img=imread(str);
+figure(1)
+imshow(Img);
+title([str '原图像']);
+%中值滤波器
+K1=medfilt2(Img,[3 3]);  %进行3*3模板的中值滤波
+K2=medfilt2(Img,[5 5]);  %进行5*5模板的中值滤波
+K3=medfilt2(Img,[7 7]);  %进行7*7模板的中值滤波
+figure(2),imshow(K1),title([str '3*3模板中值滤波']);
+figure(3),imshow(K2),title([str '5*5模板中值滤波']);
+figure(4),imshow(K3),title([str '7*7模板中值滤波']);
+%高斯滤波器
+gaus1=fspecial('gaussian', [3,3], 1);
+gaus2=fspecial('gaussian', [5,5], 1);
+gaus3=fspecial('gaussian', [7,7], 1);
+gausout1=imfilter(Img,gaus1,'replicate');%图像大小通过赋值外边界的值来扩展
+gausout2=imfilter(Img,gaus2,'replicate');
+gausout3=imfilter(Img,gaus3,'replicate');
+figure(5),imshow(gausout1),title([str '3*3模板高斯滤波']);
+figure(6),imshow(gausout2),title([str '5*5模板高斯滤波']);
+figure(7),imshow(gausout3),title([str '7*7模板高斯滤波']);
+
+《lbq02.m》
+str='test2.tif';
+[Img,map]=imread(str);
+figure(1)
+imshow(Img);
+title([str '原图像']);
+Img=double(Img);%将unit8转为double类型
+
+%高斯核大小为3*3，固定方差sigma=1.5
+n1=3;sigma1=1.5;
+n2=3;sigma2=1.5;
+conv=zeros(n2,n1);
+sum=0;
+for i=1:n2
+    for j=1:n1
+        temp = exp ( -(i-(n2+1)/2)^2/(2*sigma1^2))* exp(-(j-(n1+1)/2)^2/(2*sigma2^2));
+		conv(i,j) = temp / sqrt(2*pi*sigma1*sigma2);
+		sum =sum + conv(i,j);
+    end
+end
+conv=conv./sum;
+out1=conv2(Img,double(conv),'same');
+figure(2)
+imshow(out1,map);
+title([str '3*3自编高斯滤波']);
+%matlab自带高斯滤波器
+figure(3)
+
+gaus=fspecial('gaussian', [3,3], 1.5);
+out2=imfilter(Img,gaus,'replicate');%图像大小通过赋值外边界的值来扩展
+imshow(uint8(out2)),title([str '3*3matlab高斯滤波']);
+
+《lbq03.m》
+
+str='test4 copy.bmp';
+Img=imread(str);
+ImgDouble=double(Img);
+K=5;
+
+%原图像
+figure(1)
+imshow(uint8(ImgDouble));
+title([str '原图像']);
+
+%Unsharp masking
+figure(2)
+G=fftshift(fft2(ImgDouble));
+[m,n]=size(G);
+H=fspecial('gaussian', [n,m], 0.7);
+BlurImg=imfilter(Img,H,'replicate');%？？
+add1=imsubtract(Img,BlurImg);
+out1=K*add1+Img;
+imshow(out1);
+title([str '反锐化掩模滤波']);
+
+%Sobel edge detector
+figure(3)
+H2=fspecial('sobel');
+add2 =imfilter(Img,H2);
+out2=K*add2+Img;
+imshow(out2);
+title('sobel锐化结果');
+
+%Laplacian edge detector
+figure(4)
+H3 =fspecial('laplacian');
+add3 =imfilter(Img,H3);
+out3=K*add3+Img;
+imshow(out3);
+title('laplacian锐化结果');
+
+%Canny algorithm.
+figure(5)
+H4 =fspecial('laplacian');
+add4 =imfilter(Img,H4);
+out4=K*add4+Img;
+imshow(out4);
+title('canny锐化结果');
+
+
